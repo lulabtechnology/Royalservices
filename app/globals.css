@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Tokens de marca */
+@theme {
+  --color-brand: #7E0D05;
+  --color-surface: #CECDCD;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: white;
+  color: #111827;
+}
