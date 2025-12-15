@@ -1,8 +1,13 @@
 import { Container } from "@/components/Container";
-import { Lang } from "@/lib/types/catalog";
+import { normalizeLang } from "@/lib/i18n/lang";
 
-export default async function PoliciesLangPage({ params }: { params: Promise<{ lang: Lang }> }) {
-  const { lang } = await params;
+export default async function PoliciesLangPage({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = normalizeLang(rawLang);
 
   return (
     <Container className="py-10 space-y-4">
