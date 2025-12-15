@@ -1,13 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/Container";
+import { Lang } from "@/lib/types/catalog";
 
-export function SiteHeader() {
+export function SiteHeader({ lang = "es" }: { lang?: Lang }) {
+  const otherLang: Lang = lang === "es" ? "en" : "es";
+
   return (
     <header className="border-b border-surface bg-white">
       <Container className="py-4 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-3">
-          {/* Tú subirás el logo luego */}
+        <Link href={`/${lang}`} className="flex items-center gap-3">
           <Image
             src="/images/logo.png"
             alt="Royal Service PTY"
@@ -18,26 +20,34 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-5 text-sm">
-          <Link href="/" className="hover:text-brand">
-            Inicio
+          <Link href={`/${lang}`} className="hover:text-brand">
+            {lang === "en" ? "Home" : "Inicio"}
           </Link>
-          <Link href="/catalog" className="hover:text-brand">
-            Catálogo
+          <Link href={`/${lang}/catalog`} className="hover:text-brand">
+            {lang === "en" ? "Catalog" : "Catálogo"}
           </Link>
-          <Link href="/contact" className="hover:text-brand">
-            Contacto
+          <Link href={`/${lang}/contact`} className="hover:text-brand">
+            {lang === "en" ? "Contact" : "Contacto"}
           </Link>
-          <Link href="/policies" className="hover:text-brand">
-            Políticas
+          <Link href={`/${lang}/policies`} className="hover:text-brand">
+            {lang === "en" ? "Policies" : "Políticas"}
           </Link>
         </nav>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/cart"
+            href={`/${lang}/cart`}
             className="inline-flex items-center justify-center rounded-xl border border-surface px-3 py-2 text-sm hover:bg-gray-50"
           >
-            Carrito (0)
+            {lang === "en" ? "Cart" : "Carrito"} (0)
+          </Link>
+
+          <Link
+            href={`/${otherLang}`}
+            className="inline-flex items-center justify-center rounded-xl border border-surface px-3 py-2 text-sm hover:bg-gray-50"
+            title={lang === "en" ? "Switch to Spanish" : "Cambiar a inglés"}
+          >
+            {otherLang.toUpperCase()}
           </Link>
         </div>
       </Container>
