@@ -74,7 +74,7 @@ export default async function ProductDetailPage({
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
               <tbody>
-                {product.specs.map((row, idx) => (
+               {(product.specs as Array<{ label: string; value: string }>).map((row, idx) => (
                   <tr key={idx} className="border-t border-surface">
                     <td className="py-2 pr-4 text-gray-600 w-1/3">{row.label}</td>
                     <td className="py-2 text-gray-900">{row.value}</td>
