@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { Container } from "@/components/Container";
 import { getPublishedProducts, getVisibleCategories } from "@/lib/catalog/public";
-import { Lang } from "@/lib/types/catalog";
+import { normalizeLang } from "@/lib/i18n/lang";
 
-export default async function CatalogLangPage({ params }: { params: Promise<{ lang: Lang }> }) {
-  const { lang } = await params;
+export default async function CatalogLangPage({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = normalizeLang(rawLang);
 
   const [categories, products] = await Promise.all([
     getVisibleCategories(),
@@ -12,15 +17,12 @@ export default async function CatalogLangPage({ params }: { params: Promise<{ la
   ]);
 
   const catMap = new Map(categories.map((c) => [c.id, c]));
-
   const visibleProducts = products.filter((p) => catMap.has(p.categoryId));
 
   return (
     <Container className="py-10 space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">
-          {lang === "en" ? "Catalog" : "Catálogo"}
-        </h1>
+        <h1 className="text-2xl font-semibold">{lang === "en" ? "Catalog" : "Catálogo"}</h1>
         <p className="text-gray-600">
           {lang === "en"
             ? "Browse products and open the technical sheet."
