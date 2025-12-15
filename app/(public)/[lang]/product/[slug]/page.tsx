@@ -4,6 +4,7 @@ import { Container } from "@/components/Container";
 import { getPublishedProductBySlug } from "@/lib/catalog/public";
 import { t } from "@/lib/i18n/dict";
 import { normalizeLang } from "@/lib/i18n/lang";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 
 export default async function ProductDetailPage({
   params
@@ -17,6 +18,21 @@ export default async function ProductDetailPage({
   const product = await getPublishedProductBySlug(slug);
   if (!product) return notFound();
 
+  const cartItem = {
+    productId: product.id,
+    slug: product.slug,
+    sku: product.sku,
+    name: product.name,
+    trackStock: Boolean(product.trackStock),
+    stockQty: Number(product.stockQty ?? 0),
+    lowStockThreshold: Number(product.lowStockThreshold ?? 0),
+    allowBackorder: Boolean(product.allowBackorder),
+    promoLabel: product.promoLabel ?? null,
+    imageUrl: (product.imageUrls?.[0] as string | undefined) ?? null
+  };
+
+  const isOut = cartItem.trackStock && !cartItem.allowBackorder && cartItem.stockQty <= 0;
+
   return (
     <Container className="py-10 space-y-6">
       <Link href={`/${lang}/catalog`} className="text-sm text-brand hover:underline">
@@ -26,24 +42,29 @@ export default async function ProductDetailPage({
       <div className="rounded-2xl border border-surface p-6 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">
-              {lang === "en" ? product.name.en : product.name.es}
-            </h1>
+            <h1 className="text-2xl font-semibold">{lang === "en" ? product.name.en : product.name.es}</h1>
             <p className="text-sm text-gray-600 mt-1">
               {tr.sku}: <span className="font-medium">{product.sku}</span>
             </p>
           </div>
 
-          {product.promoLabel && (
-            <span className="rounded-full bg-brand px-3 py-1 text-xs text-white">
-              {product.promoLabel}
-            </span>
-          )}
+          {product.promoLabel ? (
+            <span className="rounded-full bg-brand px-3 py-1 text-xs text-white">{product.promoLabel}</span>
+          ) : null}
         </div>
 
-        <p className="text-gray-700">
-          {lang === "en" ? product.shortDescription.en : product.shortDescription.es}
-        </p>
+        <p className="text-gray-700">{lang === "en" ? product.shortDescription.en : product.shortDescription.es}</p>
+
+        <div className="pt-2">
+          <AddToCartButton
+            item={cartItem}
+            label={lang === "en" ? "Add to cart" : "Agregar al carrito"}
+            disabledLabel={lang === "en" ? "Out of stock" : "Agotado"}
+          />
+          {isOut ? (
+            <p className="text-xs text-gray-600 mt-2">{lang === "en" ? "This item is out of stock." : "Este producto está agotado."}</p>
+          ) : null}
+        </div>
       </div>
 
       <div className="rounded-2xl border border-surface p-6">
@@ -63,9 +84,7 @@ export default async function ProductDetailPage({
             </table>
           </div>
         ) : (
-          <p className="text-sm text-gray-600 mt-2">
-            {lang === "en" ? "No specifications yet." : "Aún no hay especificaciones."}
-          </p>
+          <p className="text-sm text-gray-600 mt-2">{lang === "en" ? "No specifications yet." : "Aún no hay especificaciones."}</p>
         )}
 
         {product.pdfUrl ? (
