@@ -7,11 +7,8 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const ids: string[] = Array.isArray(body?.ids) ? body.ids : [];
 
-  if (!ids.length) {
-    return NextResponse.json({ ok: true, products: {} });
-  }
+  if (!ids.length) return NextResponse.json({ ok: true, products: {} });
 
-  // get products
   const refs = ids.map((id) => adminDb.collection("products").doc(String(id)));
   const snaps = await adminDb.getAll(...refs);
 
@@ -19,32 +16,38 @@ export async function POST(req: Request) {
     .filter((s) => s.exists)
     .map((s) => ({ id: s.id, ...(s.data() as any) }));
 
-  // fetch categories visibility
+  // Intentamos leer categorías, pero si no existen, NO bloqueamos.
   const categoryIds = Array.from(new Set(rawProducts.map((p) => p.categoryId).filter(Boolean)));
-  const catRefs = categoryIds.map((id) => adminDb.collection("categories").doc(String(id)));
-  const catSnaps = catRefs.length ? await adminDb.getAll(...catRefs) : [];
-
   const catVisible = new Map<string, boolean>();
-  for (const s of catSnaps) {
-    if (!s.exists) continue;
-    const d: any = s.data();
-    catVisible.set(s.id, d?.isVisible === true);
+
+  try {
+    if (categoryIds.length) {
+      const catRefs = categoryIds.map((id) => adminDb.collection("categories").doc(String(id)));
+      const catSnaps = await adminDb.getAll(...catRefs);
+
+      for (const s of catSnaps) {
+        if (!s.exists) continue;
+        const d: any = s.data();
+        catVisible.set(s.id, d?.isVisible === true);
+      }
+    }
+  } catch {
+    // si falla categories, seguimos sin bloquear
   }
 
   const products: Record<
     string,
-    {
-      trackStock: boolean;
-      stockQty: number;
-      lowStockThreshold: number;
-      allowBackorder: boolean;
-    }
+    { trackStock: boolean; stockQty: number; lowStockThreshold: number; allowBackorder: boolean }
   > = {};
 
   for (const p of rawProducts) {
-    // solo published + categoría visible
+    // solo published
     if (p.status !== "published") continue;
-    if (!catVisible.get(String(p.categoryId))) continue;
+
+    // Si la categoría existe y está visible=false => bloquea
+    // Si la categoría NO existe (o categories está roto) => permitimos (HOTFIX)
+    const catId = String(p.categoryId || "");
+    if (catId && catVisible.has(catId) && catVisible.get(catId) === false) continue;
 
     products[p.id] = {
       trackStock: Boolean(p.trackStock),
