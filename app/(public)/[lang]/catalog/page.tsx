@@ -12,9 +12,15 @@ export default async function CatalogLangPage({
   const { lang: rawLang } = await params;
   const lang = normalizeLang(rawLang);
 
-  const [categories, products] = await Promise.all([getVisibleCategories(), getPublishedProducts()]);
-  const catMap = new Map(categories.map((c) => [c.id, c]));
-  const visibleProducts = products.filter((p) => catMap.has(p.categoryId));
+const [categories, products] = await Promise.all([
+  getVisibleCategories(),
+  getPublishedProducts()
+]);
+
+// 🚑 HOTFIX: mientras arreglamos categories/categoryId,
+// no filtramos por categoryId para no ocultar todo.
+const visibleProducts = products;
+
 
   return (
     <Container className="py-10 space-y-6">
@@ -26,7 +32,12 @@ export default async function CatalogLangPage({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {categories.map((c) => (
+        {(categories.length ? categories : [
+  { id: "equipos", name: { es: "Equipos", en: "Equipment" }, slug: "equipos" },
+  { id: "implementos", name: { es: "Implementos", en: "Implements" }, slug: "implementos" },
+  { id: "repuestos", name: { es: "Repuestos", en: "Spare parts" }, slug: "repuestos" }
+]).map((c: any) => (
+
           <span key={c.id} className="rounded-full border border-surface px-3 py-1 text-sm">
             {lang === "en" ? c.name.en : c.name.es}
           </span>
