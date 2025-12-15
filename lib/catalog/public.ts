@@ -1,71 +1,33 @@
-import { adminDb } from "@/lib/firebase/admin";
-
-// 🔥 HOTFIX: no dependemos de categories para listar productos.
-// categories podrá arreglarse más adelante en Admin.
-
-export async function getVisibleCategories() {
-  try {
-    const snap = await adminDb
-      .collection("categories")
-      .where("isVisible", "==", true)
-      .orderBy("sortOrder", "asc")
-      .get();
-
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  } catch (e) {
-    // Si categories está vacío o hay lío, devolvemos []
-    return [];
-  }
-}
-
 export async function getPublishedProducts() {
+  // Trae hasta 200 productos (en este proyecto es más que suficiente)
+  // y filtra "published" de forma tolerante (status / stuatus / espacios / mayúsculas).
   try {
-    // Si existe índice status+updatedAt, perfecto.
-    // Si algunos docs no tienen updatedAt, Firestore igual los trae (los missing quedan al final/antes según orden).
     const snap = await adminDb
       .collection("products")
-      .where("status", "==", "published")
       .orderBy("updatedAt", "desc")
+      .limit(200)
       .get();
 
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  } catch (e) {
-    // Si por alguna razón falla el orderBy(updatedAt), hacemos fallback sin orderBy
-    const snap = await adminDb
-      .collection("products")
-      .where("status", "==", "published")
-      .get();
+    const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  }
-}
+    const published = all.filter((p) => {
+      const raw = p.status ?? p.stuatus ?? "published";
+      const norm = String(raw).trim().toLowerCase();
+      return norm === "published";
+    });
 
-export async function getPublishedProductBySlug(slug: string) {
-  // Evitamos índice compuesto (status+slug) consultando solo por slug
-  const snap = await adminDb
-    .collection("products")
-    .where("slug", "==", slug)
-    .limit(1)
-    .get();
+    return published;
+  } catch {
+    // Fallback si NO existe updatedAt en algunos docs (orderBy puede fallar)
+    const snap = await adminDb.collection("products").limit(200).get();
+    const all = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 
-  const doc = snap.docs[0];
-  if (!doc) return null;
+    const published = all.filter((p) => {
+      const raw = p.status ?? p.stuatus ?? "published";
+      const norm = String(raw).trim().toLowerCase();
+      return norm === "published";
+    });
 
-  const data: any = doc.data();
-  if (data?.status !== "published") return null;
-
-  return { id: doc.id, ...data };
-}
-
-export async function getActivePromotions() {
-  try {
-    const snap = await adminDb
-      .collection("promotions")
-      .where("isActive", "==", true)
-      .get();
-
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  } catch (e) {
-    return [];
+    return published;
   }
 }
