@@ -4,6 +4,9 @@ import { getPublishedProducts, getVisibleCategories } from "@/lib/catalog/public
 import { normalizeLang } from "@/lib/i18n/lang";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function CatalogLangPage({
   params
 }: {
