@@ -2,15 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/Container";
 import { getPublishedProductBySlug } from "@/lib/catalog/public";
-import { Lang } from "@/lib/types/catalog";
 import { t } from "@/lib/i18n/dict";
+import { normalizeLang } from "@/lib/i18n/lang";
 
 export default async function ProductDetailPage({
   params
 }: {
-  params: Promise<{ lang: Lang; slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }) {
-  const { lang, slug } = await params;
+  const { lang: rawLang, slug } = await params;
+  const lang = normalizeLang(rawLang);
   const tr = t(lang);
 
   const product = await getPublishedProductBySlug(slug);
