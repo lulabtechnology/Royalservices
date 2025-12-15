@@ -1,13 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/Container";
-import { Lang } from "@/lib/types/catalog";
 import { t } from "@/lib/i18n/dict";
 import { getActivePromotions } from "@/lib/catalog/public";
+import { normalizeLang } from "@/lib/i18n/lang";
 
-export default async function HomeLangPage({ params }: { params: Promise<{ lang: Lang }> }) {
-  const { lang } = await params;
+export default async function HomeLangPage({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = normalizeLang(rawLang);
   const tr = t(lang);
+
   const promos = await getActivePromotions();
 
   return (
@@ -20,7 +26,9 @@ export default async function HomeLangPage({ params }: { params: Promise<{ lang:
             </p>
 
             <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-              {lang === "en" ? "Professional catalog and quote requests" : "Catálogo profesional y pedidos por WhatsApp"}
+              {lang === "en"
+                ? "Professional catalog and quote requests"
+                : "Catálogo profesional y pedidos por WhatsApp"}
             </h1>
 
             <p className="text-base text-gray-600">
@@ -40,7 +48,9 @@ export default async function HomeLangPage({ params }: { params: Promise<{ lang:
 
             {promos.length > 0 && (
               <div className="mt-4 rounded-2xl border border-surface p-4">
-                <p className="text-sm font-semibold">{lang === "en" ? "Active promotions" : "Promociones activas"}</p>
+                <p className="text-sm font-semibold">
+                  {lang === "en" ? "Active promotions" : "Promociones activas"}
+                </p>
                 <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
                   {promos.slice(0, 3).map((p) => (
                     <li key={p.id}>
