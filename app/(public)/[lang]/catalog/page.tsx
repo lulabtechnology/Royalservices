@@ -47,32 +47,34 @@ const visibleProducts = products;
         ))}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {visibleProducts.map((p) => {
-          const isOut = p.trackStock && !p.allowBackorder && Number(p.stockQty ?? 0) <= 0;
-          const isLow = p.trackStock && Number(p.stockQty ?? 0) > 0 && Number(p.stockQty ?? 0) <= Number(p.lowStockThreshold ?? 0);
+     {visibleProducts.length === 0 ? (
+  <div className="rounded-xl border border-surface p-4 text-sm text-gray-600">
+    No hay productos publicados todavía.
+  </div>
+) : (
+  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {visibleProducts.map((p: any) => (
+      <div key={p.id} className="rounded-xl border border-surface p-4">
+        <div className="text-xs text-gray-500">{p.sku ?? p.code ?? ""}</div>
 
-          const cartItem = {
-            productId: p.id,
-            slug: p.slug,
-            sku: p.sku,
-            name: p.name,
-            trackStock: Boolean(p.trackStock),
-            stockQty: Number(p.stockQty ?? 0),
-            lowStockThreshold: Number(p.lowStockThreshold ?? 0),
-            allowBackorder: Boolean(p.allowBackorder),
-            promoLabel: p.promoLabel ?? null,
-            imageUrl: (p.imageUrls?.[0] as string | undefined) ?? null
-          };
+        <div className="mt-1 text-lg font-semibold">
+          <Link href={`/${lang}/product/${p.slug}`}>
+            {p?.name?.[lang] ?? p?.name?.es ?? "Producto"}
+          </Link>
+        </div>
 
-          return (
-            <div key={p.id} className="rounded-2xl border border-surface p-5 hover:shadow-sm transition">
-              <Link href={`/${lang}/product/${p.slug}`} className="block">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">{lang === "en" ? p.name.en : p.name.es}</p>
-                    <p className="text-sm text-gray-600 mt-1">{p.sku}</p>
-                  </div>
+        <div className="mt-1 text-sm text-gray-600">
+          {p?.shortDescription?.[lang] ?? p?.shortDescription?.es ?? ""}
+        </div>
+
+        <div className="mt-2 text-xs text-gray-500">
+          categoryId: <span className="font-mono">{String(p.categoryId ?? "")}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
 
                   {p.promoLabel ? (
                     <span className="rounded-full bg-brand px-3 py-1 text-xs text-white">{p.promoLabel}</span>
